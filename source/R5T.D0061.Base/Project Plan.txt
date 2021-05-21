@@ -1,0 +1,4 @@
+R5T.D0061.Base - Base service definitions library for the IRazorViewStringRenderer service.
+
+Goals
+
