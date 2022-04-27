@@ -13,11 +13,14 @@ using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Routing;
 
+using R5T.T0064;
+
 
 namespace R5T.D0061
 {
     // Source: https://github.com/aspnet/Entropy/blob/master/samples/Mvc.RenderViewToString/RazorViewToStringRenderer.cs
-    public class RazorViewStringRenderer : IRazorViewStringRenderer
+    [ServiceImplementationMarker]
+    public class RazorViewStringRenderer : IRazorViewStringRenderer, IServiceImplementation
     {
         private IRazorViewEngine RazorViewEngine { get; }
         private IServiceProvider ServiceProvider { get; }
@@ -40,27 +43,26 @@ namespace R5T.D0061
             var actionContext = this.GetActionContext();
             var view = this.FindView(actionContext, viewName);
 
-            using (var output = new StringWriter())
-            {
-                var viewContext = new ViewContext(
-                    actionContext,
-                    view,
-                    new ViewDataDictionary<TModel>(
-                        metadataProvider: new EmptyModelMetadataProvider(),
-                        modelState: new ModelStateDictionary())
-                    {
-                        Model = model
-                    },
-                    new TempDataDictionary(
-                        actionContext.HttpContext,
-                        this.TempDataProvider),
-                    output,
-                    new HtmlHelperOptions());
+            using var output = new StringWriter();
 
-                await view.RenderAsync(viewContext);
+            var viewContext = new ViewContext(
+                actionContext,
+                view,
+                new ViewDataDictionary<TModel>(
+                    metadataProvider: new EmptyModelMetadataProvider(),
+                    modelState: new ModelStateDictionary())
+                {
+                    Model = model
+                },
+                new TempDataDictionary(
+                    actionContext.HttpContext,
+                    this.TempDataProvider),
+                output,
+                new HtmlHelperOptions());
 
-                return output.ToString();
-            }
+            await view.RenderAsync(viewContext);
+
+            return output.ToString();
         }
 
         private IView FindView(ActionContext actionContext, string viewName)
